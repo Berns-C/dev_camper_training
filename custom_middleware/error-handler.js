@@ -5,12 +5,13 @@ const errorHandler = (err, req, res, next) => {
     error.message = err.message;
 
     //Log to consolne dev
-    //console.log(err.stack.red);
-    console.log(err)
+    console.log(err.stack.red);
+    //console.log('error ', error)
+    //console.log('err ', err)
 
     //Mongoose bad ObjectID handler
     if (err.name === 'CastError') {
-        const message = `Bootcamp not found with ID of ${err.value}`;
+        const message = `Resource not found.`;
         error = new ErrorResponse(message, 404);
     }
 
@@ -23,12 +24,13 @@ const errorHandler = (err, req, res, next) => {
     // Mongoose address validation
     if (err.name === 'ValidationError') {
         const message = Object.values(err.errors).map(val => val.message);
+        console.log('Validation Error ', message)
         error = new ErrorResponse(message, 400);
     }
 
     res.status(error.statusCode || 500).json({
         success: false,
-        error: error.message || 'Server Error'
+        error: error.message || 'Server Error',
     });
 };
 
