@@ -6,6 +6,9 @@ const colors = require('colors');
 const fileUpload = require('express-fileupload');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const errorHandler = require('./custom_middleware/error-handler');
 const connectDB = require('./config/db');
@@ -45,22 +48,27 @@ app.use(mongoSanitize());
 // Set security headers
 app.use(helmet());
 
+// Prevent XSS attacks
+app.use(xss());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 mins
+    max: 50
+});
+
+app.use(limiter);
+
+// Prevent http param pollution
+app.use(hpp());
+const corsSetting = require('./utils/custom-cors');
+
 // CORS settings
-// app.use(function(req, res, next){
-//     res.setHeader("Access-Control-Allow-Origin", "*"); // temporary
-//     res.setHeader("Access-Control-Allow-Credentials", "true");
-//     res.setHeader("Access-Control-Expose-Headers", "Content-Length");
-//     res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-//     res.setHeader("Access-Control-Allow-Headers",
-//     "Origin,Authorization,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method");
-//   next();
-// });
+app.use(corsSetting);
 
 
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
-
-
 
 //Mount routers
 app.use('/api/v1/bootcamps', bootcamps);
